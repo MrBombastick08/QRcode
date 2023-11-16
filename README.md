@@ -13,7 +13,7 @@
 3) дальше будет написано "Введите имя файла для сохранения QR-кода (включая расширение .png): " и пишем <имя файла.png>
 4) у Вас есть QR код, который открывает нужный Вам сайт
 
-# QR code generator by Kojin 17
+# QRcode generator by Kojin 17
 In order for the code to work, you need to create a "qrcode" library. How to do it in PyCharm:
 1) open or create a file
 2) open the "Settings" tab
