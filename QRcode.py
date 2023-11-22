@@ -1,11 +1,11 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
 import qrcode
 
-class QRCodeGeneratorApp:
-    def __init__(self, root):
-        self.root = root
+class QRCodeGenerator:
+    def __init__(self):
+        self.root = tk.Tk()
         self.root.title("QR Code Generator")
 
         self.setup_ui()
@@ -17,6 +17,7 @@ class QRCodeGeneratorApp:
         self.entry.grid(row=0, column=1, padx=10, pady=10)
 
         ttk.Button(self.root, text="Создать QR-код", command=self.generate_qr_code).grid(row=1, column=0, columnspan=2, pady=10)
+        ttk.Button(self.root, text="Сохранить в PNG", command=self.save_qr_code).grid(row=3, column=0, columnspan=2, pady=10)
 
         # Метка для отображения QR-кода
         self.qr_label = ttk.Label(self.root)
@@ -40,7 +41,24 @@ class QRCodeGeneratorApp:
             self.qr_label.config(image=img)
             self.qr_label.image = img
 
+            # Сохранение изображения QR-кода в объекте
+            self.generated_image = img
+            self.generated_qr = qr
+
+    def save_qr_code(self):
+        try:
+            filename = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
+            if filename:
+                img = self.generated_qr.make_image(fill_color="black", back_color="white")
+                img.save(filename)
+                tk.messagebox.showinfo("Сохранено", f"QR-код сохранен в файл: {filename}")
+        except Exception as e:
+            tk.messagebox.showerror("Ошибка", f"Не удалось сохранить QR-код. {str(e)}")
+
+    def run(self):
+        self.root.mainloop()
+
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = QRCodeGeneratorApp(root)
-    root.mainloop()
+    app = QRCodeGenerator()
+    app.run()
+
