@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageTk
 import qrcode
 
@@ -7,7 +7,6 @@ class QRCodeGenerator:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("QR Code Generator")
-
         self.setup_ui()
 
     def setup_ui(self):
@@ -23,27 +22,35 @@ class QRCodeGenerator:
         self.qr_label = ttk.Label(self.root)
         self.qr_label.grid(row=2, column=0, columnspan=2, pady=10)
 
+        # Обработка события закрытия окна
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
     def generate_qr_code(self):
-        data = self.entry.get()
-        if data:
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
-                box_size=10,
-                border=4,
-            )
-            qr.add_data(data)
-            qr.make(fit=True)
-            img = qr.make_image(fill_color="black", back_color="white")
+        try:
+            data = self.entry.get()
+            if data:
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=10,
+                    border=4,
+                )
+                qr.add_data(data)
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="black", back_color="white")
 
-            # Преобразование изображения для отображения в Tkinter
-            img = ImageTk.PhotoImage(img)
-            self.qr_label.config(image=img)
-            self.qr_label.image = img
+                # Преобразование изображения для отображения в Tkinter
+                img = ImageTk.PhotoImage(img)
+                self.qr_label.config(image=img)
+                self.qr_label.image = img
 
-            # Сохранение изображения QR-кода в объекте
-            self.generated_image = img
-            self.generated_qr = qr
+                # Сохранение изображения QR-кода в объекте
+                self.generated_image = img
+                self.generated_qr = qr
+        except qrcode.exceptions.DataOverflowError:
+            messagebox.showerror("Ошибка", "Слишком много данных для создания QR-кода.")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось создать QR-код. {str(e)}")
 
     def save_qr_code(self):
         try:
@@ -51,9 +58,15 @@ class QRCodeGenerator:
             if filename:
                 img = self.generated_qr.make_image(fill_color="black", back_color="white")
                 img.save(filename)
-                tk.messagebox.showinfo("Сохранено", f"QR-код сохранен в файл: {filename}")
+                messagebox.showinfo("Сохранено", f"QR-код сохранен в файл: {filename}")
+        except qrcode.exceptions.DataOverflowError:
+            messagebox.showerror("Ошибка", "Слишком много данных для создания QR-кода.")
         except Exception as e:
-            tk.messagebox.showerror("Ошибка", f"Не удалось сохранить QR-код. {str(e)}")
+            messagebox.showerror("Ошибка", f"Не удалось сохранить QR-код. {str(e)}")
+
+    def on_closing(self):
+        if messagebox.askokcancel("Закрыть", "Вы уверены, что хотите закрыть приложение?"):
+            self.root.destroy()
 
     def run(self):
         self.root.mainloop()
@@ -61,4 +74,3 @@ class QRCodeGenerator:
 if __name__ == "__main__":
     app = QRCodeGenerator()
     app.run()
-
