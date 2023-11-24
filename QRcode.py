@@ -25,6 +25,10 @@ class QRCodeGenerator:
         # Обработка события закрытия окна
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+        # Обработка событий клавиш
+        self.root.bind("<Escape>", lambda event: self.root.destroy())
+        self.root.bind("<Return>", lambda event: self.generate_qr_code())
+
     def generate_qr_code(self):
         try:
             data = self.entry.get()
