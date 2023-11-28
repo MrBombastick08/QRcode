@@ -6,26 +6,27 @@ import qrcode
 class QRCodeGenerator:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("QR Code Generator")
+        self.root.title("Генератор QR-кодов")
         self.setup_ui()
 
     def setup_ui(self):
-        ttk.Label(self.root, text="Введите данные для QR-кода:").grid(row=0, column=0, padx=10, pady=10)
+        # Entry for user input
+        self.entry = ttk.Entry(self.root, width=40)
+        self.entry.grid(row=0, column=0, padx=10, pady=10, columnspan=3)
 
-        self.entry = ttk.Entry(self.root)
-        self.entry.grid(row=0, column=1, padx=10, pady=10)
+        # Buttons for generating QR code and saving as PNG
+        ttk.Button(self.root, text="Создать QR-код", command=self.generate_qr_code).grid(row=1, column=0, pady=10, columnspan=3)
+        ttk.Button(self.root, text="Сохранить в PNG", command=self.save_qr_code).grid(row=2, column=0, pady=10, columnspan=3)
 
-        ttk.Button(self.root, text="Создать QR-код", command=self.generate_qr_code).grid(row=1, column=0, columnspan=2, pady=10)
-        ttk.Button(self.root, text="Сохранить в PNG", command=self.save_qr_code).grid(row=3, column=0, columnspan=2, pady=10)
-
-        # Метка для отображения QR-кода
+        # Label for displaying QR code
         self.qr_label = ttk.Label(self.root)
-        self.qr_label.grid(row=2, column=0, columnspan=2, pady=10)
+        self.qr_label.grid(row=3, column=0, pady=10, columnspan=3)
 
-        # Обработка события закрытия окна
+        # Toggle theme button
+        ttk.Button(self.root, text="Переключить тему", command=self.toggle_theme).grid(row=4, column=0, pady=10, columnspan=3)
+
+        # Event handling
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-
-        # Обработка событий клавиш
         self.root.bind("<Escape>", lambda event: self.root.destroy())
         self.root.bind("<Return>", lambda event: self.generate_qr_code())
 
@@ -43,14 +44,10 @@ class QRCodeGenerator:
                 qr.make(fit=True)
                 img = qr.make_image(fill_color="black", back_color="white")
 
-                # Преобразование изображения для отображения в Tkinter
+                # Convert the image for display in Tkinter
                 img = ImageTk.PhotoImage(img)
                 self.qr_label.config(image=img)
                 self.qr_label.image = img
-
-                # Сохранение изображения QR-кода в объекте
-                self.generated_image = img
-                self.generated_qr = qr
         except qrcode.exceptions.DataOverflowError:
             messagebox.showerror("Ошибка", "Слишком много данных для создания QR-кода.")
         except Exception as e:
@@ -60,13 +57,18 @@ class QRCodeGenerator:
         try:
             filename = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
             if filename:
-                img = self.generated_qr.make_image(fill_color="black", back_color="white")
+                img = qrcode.make(self.entry.get())
                 img.save(filename)
                 messagebox.showinfo("Сохранено", f"QR-код сохранен в файл: {filename}")
         except qrcode.exceptions.DataOverflowError:
             messagebox.showerror("Ошибка", "Слишком много данных для создания QR-кода.")
         except Exception as e:
             messagebox.showerror("Ошибка", f"Не удалось сохранить QR-код. {str(e)}")
+
+    def toggle_theme(self):
+        current_bg = self.root.cget("background")
+        new_bg = "#FFFFFF" if current_bg == "#000000" else "#000000"
+        self.root.configure(background=new_bg)
 
     def on_closing(self):
         if messagebox.askokcancel("Закрыть", "Вы уверены, что хотите закрыть приложение?"):
