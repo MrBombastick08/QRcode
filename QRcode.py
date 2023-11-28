@@ -26,7 +26,7 @@ class QRCodeGeneratorApp:
         self.data_entry = ttk.Entry(main_frame, width=40)
         self.data_entry.grid(row=1, column=0, pady=10, sticky=tk.W)
 
-        ttk.Label(main_frame, text="Выберите уровень коррекции ошибок:").grid(row=2, column=0, pady=10, sticky=tk.W)
+        ttk.Label(main_frame, text="Выберите размер QR кода:").grid(row=2, column=0, pady=10, sticky=tk.W)
         self.error_correction_var = tk.StringVar()
         self.error_correction_var.set("L")
         error_correction_menu = ttk.Combobox(main_frame, textvariable=self.error_correction_var,
