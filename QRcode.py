@@ -1,92 +1,77 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk
 import qrcode
 from PIL import Image, ImageTk
+from tkinter import filedialog
 
-class QRCodeGeneratorApp:
+class QRCodeGenerator:
     def __init__(self, root):
         self.root = root
-        self.root.title("QR Code Generator")
-        self.root.geometry("600x400")
-        self.root.resizable(True, True)
+        self.root.title("Генератор QR кодов")
 
-        self.create_widgets()
+        self.qr_label = ttk.Label(root)
+        self.qr_label.pack(pady=10)
 
-        # Привязываем событие "Enter" к созданию QR-кода
-        self.root.bind('<Return>', lambda event: self.generate_qr_code())
+        self.entry_label = ttk.Label(root, text="Введите текст:")
+        self.entry_label.pack(pady=5)
 
-        # Привязываем событие "ESC" к выходу из приложения
-        self.root.bind('<Escape>', lambda event: self.root.destroy())
+        self.entry = ttk.Entry(root, width=30)
+        self.entry.pack(pady=5)
 
-    def create_widgets(self):
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.generate_button = ttk.Button(root, text="Сгенерировать", command=self.generate_qr)
+        self.generate_button.pack(pady=5)
 
-        ttk.Label(main_frame, text="Введите данные для кодирования в QR-код:").grid(row=0, column=0, pady=10, sticky=tk.W)
-        self.data_entry = ttk.Entry(main_frame, width=40)
-        self.data_entry.grid(row=1, column=0, pady=10, sticky=tk.W)
+        self.save_button = ttk.Button(root, text="Сохранить в PNG", command=self.save_qr)
+        self.save_button.pack(pady=5)
 
-        ttk.Label(main_frame, text="Выберите размер QR кода:").grid(row=2, column=0, pady=10, sticky=tk.W)
-        self.error_correction_var = tk.StringVar()
-        self.error_correction_var.set("L")
-        error_correction_menu = ttk.Combobox(main_frame, textvariable=self.error_correction_var,
-                                            values=["L", "M", "Q", "H"], state="readonly")
-        error_correction_menu.grid(row=3, column=0, pady=10, sticky=tk.W)
+        # Добавление обработчиков событий для клавиш ESC и Enter
+        root.bind('<Escape>', self.exit_fullscreen)
+        root.bind('<Return>', self.generate_qr)
 
-        ttk.Label(main_frame, text="Выберите цвет QR-кода:").grid(row=4, column=0, pady=10, sticky=tk.W)
-        self.color_var = tk.StringVar()
-        self.color_var.set("black")
-        color_menu = ttk.Combobox(main_frame, textvariable=self.color_var,
-                                  values=["black", "red", "green", "blue"], state="readonly")
-        color_menu.grid(row=5, column=0, pady=10, sticky=tk.W)
-
-        ttk.Button(main_frame, text="Сгенерировать", command=self.generate_qr_code).grid(row=6, column=0, pady=10, sticky=tk.W)
-        ttk.Button(main_frame, text="Сохранить в PNG", command=self.save_qr_code).grid(row=7, column=0, pady=10, sticky=tk.W)
-
-        qr_frame = ttk.Frame(self.root, padding="10")
-        qr_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N, tk.S))
-
-        self.qr_label = ttk.Label(qr_frame, text="Предпросмотр QR-кода", font=("Helvetica", 12))
-        self.qr_label.grid(row=0, column=0, pady=10, padx=10, sticky=tk.E)
-
-    def generate_qr_code(self):
-        data_to_encode = self.data_entry.get()
-
-        if data_to_encode:
-            error_correction = self.error_correction_var.get()
-            color = self.color_var.get()
-
+    def generate_qr(self, event=None):
+        data = self.entry.get()
+        if data:
             qr = qrcode.QRCode(
                 version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L if error_correction == "L" else
-                                 qrcode.constants.ERROR_CORRECT_M if error_correction == "M" else
-                                 qrcode.constants.ERROR_CORRECT_Q if error_correction == "Q" else
-                                 qrcode.constants.ERROR_CORRECT_H,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
                 box_size=10,
                 border=4,
             )
-
-            qr.add_data(data_to_encode)
+            qr.add_data(data)
             qr.make(fit=True)
 
-            qr_img = qr.make_image(fill_color=color, back_color="white")
+            img = qr.make_image(fill_color="black", back_color="white")
+            img = img.resize((300, 300), Image.LANCZOS)
 
-            img_tk = ImageTk.PhotoImage(qr_img)
+            self.photo = ImageTk.PhotoImage(img)
+            self.qr_label.config(image=self.photo)
+            self.qr_label.image = self.photo
 
-            self.qr_label.config(image=img_tk)
-            self.qr_label.image = img_tk
+    def save_qr(self):
+        data = self.entry.get()
+        if data:
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(data)
+            qr.make(fit=True)
 
-    def save_qr_code(self):
-        try:
-            file_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
+            img = qr.make_image(fill_color="black", back_color="white")
+            img = img.resize((300, 300), Image.LANCZOS)
 
-            if file_path:
-                img = Image.open(self.qr_label.image.cget("image"))
-                img.save(file_path)
-        except AttributeError:
-            pass
+            filename = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
+
+            if filename:
+                img.save(filename)
+
+    def exit_fullscreen(self, event):
+        self.root.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = QRCodeGeneratorApp(root)
+    app = QRCodeGenerator(root)
+    root.geometry("400x400")  # Устанавливаем размер окна
     root.mainloop()
