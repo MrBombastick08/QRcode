@@ -9,6 +9,10 @@ class QRCodeGenerator:
         self.root = root
         self.root.title("Генератор QR кодов")
 
+        # Изменение темы оформления
+        self.style = ttk.Style()
+        self.style.theme_use("clam")
+
         self.qr_label = ttk.Label(root)
         self.qr_label.pack(pady=10)
 
