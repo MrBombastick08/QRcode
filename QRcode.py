@@ -1,8 +1,9 @@
 import tkinter as tk
-from tkinter import ttk, simpledialog
+from tkinter import ttk
 import qrcode
 from PIL import Image, ImageTk
 from tkinter import filedialog
+import pyperclip  # Для работы с буфером обмена
 
 class QRCodeGenerator:
     def __init__(self, root):
@@ -27,8 +28,15 @@ class QRCodeGenerator:
         self.save_button = ttk.Button(root, text="Сохранить в PNG", command=self.save_qr)
         self.save_button.pack(pady=5)
 
-        self.theme_button = ttk.Button(root, text="Выбрать тему", command=self.change_theme)
-        self.theme_button.pack(pady=5)
+        self.theme_label = ttk.Label(root, text="Выберите тему:")
+        self.theme_label.pack(pady=5)
+
+        self.theme_combobox = ttk.Combobox(root, values=self.style.theme_names())
+        self.theme_combobox.set("clam")
+        self.theme_combobox.pack(pady=5)
+
+        self.paste_button = ttk.Button(root, text="Вставить из буфера", command=self.paste_from_clipboard)
+        self.paste_button.pack(pady=5)
 
         root.bind('<Escape>', self.exit_fullscreen)
         root.bind('<Return>', self.generate_qr)
@@ -79,20 +87,17 @@ class QRCodeGenerator:
     def exit_fullscreen(self, event):
         self.root.destroy()
 
+    def paste_from_clipboard(self):
+        clipboard_data = pyperclip.paste()
+        self.entry.delete(0, tk.END)
+        self.entry.insert(0, clipboard_data)
+
     def change_theme(self):
-        # Список доступных тем
-        available_themes = self.style.theme_names()
-
-        # Строка с информацией о темах
-        themes_info = "Доступные темы:\n" + "\n".join(available_themes)
-
-        # Диалоговое окно для ввода имени темы
-        theme_name = simpledialog.askstring("Выбор темы", "Введите имя темы:\n\n" + themes_info)
-
-        if theme_name:
+        selected_theme = self.theme_combobox.get()
+        if selected_theme:
             try:
-                self.style.theme_use(theme_name)
-                print(f"Тема изменена на {theme_name}")
+                self.style.theme_use(selected_theme)
+                print(f"Тема изменена на {selected_theme}")
             except tk.TclError as e:
                 print(f"Ошибка при установке темы: {e}")
 
