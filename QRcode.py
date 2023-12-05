@@ -3,12 +3,15 @@ from tkinter import ttk
 import qrcode
 from PIL import Image, ImageTk
 from tkinter import filedialog
-import pyperclip  # Для работы с буфером обмена
+import pyperclip
 
 class QRCodeGenerator:
     def __init__(self, root):
         self.root = root
         self.root.title("Генератор QR кодов")
+
+        # Запретить изменение размеров окна
+        self.root.resizable(False, False)
 
         self.style = ttk.Style()
         self.style.theme_use("clam")
@@ -107,5 +110,5 @@ class QRCodeGenerator:
 if __name__ == "__main__":
     root = tk.Tk()
     app = QRCodeGenerator(root)
-    root.geometry("400x400")
+    root.geometry("900x700")
     root.mainloop()
