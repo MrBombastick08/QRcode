@@ -35,6 +35,9 @@ class QRCodeGenerator:
         self.theme_combobox.set("clam")
         self.theme_combobox.pack(pady=5)
 
+        self.change_theme_button = ttk.Button(root, text="Применить тему", command=self.change_theme)
+        self.change_theme_button.pack(pady=5)
+
         self.paste_button = ttk.Button(root, text="Вставить из буфера", command=self.paste_from_clipboard)
         self.paste_button.pack(pady=5)
 
