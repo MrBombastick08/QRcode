@@ -83,7 +83,7 @@ class QRCodeGenerator:
         # Список доступных тем
         available_themes = self.style.theme_names()
 
-        # Строка с информацией о темах1
+        # Строка с информацией о темах
         themes_info = "Доступные темы:\n" + "\n".join(available_themes)
 
         # Диалоговое окно для ввода имени темы
