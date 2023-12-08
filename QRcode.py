@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, colorchooser
 import qrcode
 from PIL import Image, ImageTk
 import pyperclip
@@ -23,7 +23,7 @@ class QRCodeGenerator:
         self.generate_button = ttk.Button(root, text="Сгенерировать", command=self.generate_qr)
         self.generate_button.pack(pady=5)
 
-        self.save_button = ttk.Button(root, text="Сохранить в PNG", command=self.save_qr)
+        self.save_button = ttk.Button(root, text="Сохранить", command=self.save_qr)
         self.save_button.pack(pady=5)
 
         self.theme_label = ttk.Label(root, text="Выберите тему:", font=("Helvetica", 12))
@@ -48,15 +48,24 @@ class QRCodeGenerator:
         root.bind('<Escape>', self.exit_fullscreen)
         root.bind('<Return>', self.generate_qr)
 
+        self.foreground_color = "black"
+        self.background_color = "white"
+        self.normal_foreground_color = "black"
+        self.normal_background_color = "white"
+        self.preview_window = None
+
     def generate_qr(self, event=None):
         data = self.entry.get()
         if data:
             data_bytes = data.encode('utf-8')
-            img = self.generate_qr_image(data_bytes)
+            img = self.generate_qr_image(data_bytes, self.normal_foreground_color, self.normal_background_color)
+
+            if self.preview_window:
+                self.preview_window.destroy()
 
             self.preview_qr(img)
 
-    def generate_qr_image(self, data_bytes):
+    def generate_qr_image(self, data_bytes, foreground_color, background_color):
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -66,7 +75,7 @@ class QRCodeGenerator:
         qr.add_data(data_bytes)
         qr.make(fit=True)
 
-        img = qr.make_image(fill_color="black", back_color="white")
+        img = qr.make_image(fill_color=foreground_color, back_color=background_color)
         img = img.resize((300, 300), Image.LANCZOS)
 
         return img
@@ -76,16 +85,54 @@ class QRCodeGenerator:
         preview_window.title("Предпросмотр QR кода")
         preview_window.resizable(False, False)
 
+        self.setup_preview_widgets(preview_window)
+
         photo = ImageTk.PhotoImage(img)
         qr_label = ttk.Label(preview_window, image=photo)
         qr_label.image = photo
         qr_label.pack(pady=10)
 
+        self.preview_window = preview_window
+
+    def setup_preview_widgets(self, window):
+        color_label = ttk.Label(window, text="Выберите цвета QR-кода:")
+        color_label.pack(pady=5)
+
+        foreground_color_button = ttk.Button(window, text="Цвет переднего плана", command=self.choose_foreground_color)
+        foreground_color_button.pack(pady=5)
+
+        background_color_button = ttk.Button(window, text="Цвет фона", command=self.choose_background_color)
+        background_color_button.pack(pady=5)
+
+        reset_colors_button = ttk.Button(window, text="Сбросить к изначальным цветам", command=self.reset_colors)
+        reset_colors_button.pack(pady=5)
+
+    def choose_foreground_color(self):
+        color = colorchooser.askcolor(initialcolor=self.foreground_color)[1]
+        if color:
+            self.foreground_color = color
+            self.normal_foreground_color = color
+            self.generate_qr()
+
+    def choose_background_color(self):
+        color = colorchooser.askcolor(initialcolor=self.background_color)[1]
+        if color:
+            self.background_color = color
+            self.normal_background_color = color
+            self.generate_qr()
+
+    def reset_colors(self):
+        self.foreground_color = "black"
+        self.background_color = "white"
+        self.normal_foreground_color = "black"
+        self.normal_background_color = "white"
+        self.generate_qr()
+
     def save_qr(self):
         data = self.entry.get()
         if data:
             data_bytes = data.encode('utf-8')
-            img = self.generate_qr_image(data_bytes)
+            img = self.generate_qr_image(data_bytes, self.normal_foreground_color, self.normal_background_color)
 
             filename = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
 
